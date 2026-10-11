@@ -18,7 +18,7 @@
 <section class="panel"><h3 style="margin-top:0">Panduan singkat</h3><ol><li>Masukkan PIN pengelola yang disetel di Script Properties Apps Script.</li><li>Isi judul, tanggal, kategori, dan keterangan.</li><li>Pilih foto kegiatan.</li><li>Pilih “Tampilkan di website” jika konten siap diterbitkan.</li><li>Tekan “Simpan Konten Kegiatan”.</li></ol><p class="small">Form ini membutuhkan backend Google Apps Script yang dikonfigurasi. Jangan masukkan URL atau PIN admin ke dalam kode website.</p></section>
 </main>
 <script>
-const CONTENT_API_URL = "https://script.google.com/macros/s/AKfycbyNYS4j6jegTeFFQJMO21dQoFY-HJl51rsKEUo2PG8ycuJ8-XNpqBYYRGNdB2a-kr3_Iw/exec"; // Tempel URL Web App backend konten di sini setelah deploy.
+const CONTENT_API_URL = "https://script.google.com/macros/s/AKfycbyNYS4j6jegTeFFQJMO21dQoFY-HJl51rsKEUo2PG8ycuJ8-XNpqBYYRGNdB2a-kr3_Iw/exec"; // Backend konten website BSBM
 const form=document.getElementById('contentForm'),fileInput=document.getElementById('photo'),preview=document.getElementById('preview'),msg=document.getElementById('statusMsg'),btn=document.getElementById('submitBtn');
 fileInput.addEventListener('change',()=>{const f=fileInput.files[0];preview.style.display='none';if(!f)return;if(f.size>5*1024*1024){fileInput.value='';show('Ukuran foto melebihi 5 MB. Pilih foto yang lebih kecil.','err');return;}preview.src=URL.createObjectURL(f);preview.style.display='block';});
 function show(t,c){msg.textContent=t;msg.className='status '+c;msg.style.display='block';}
