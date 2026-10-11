@@ -27,13 +27,14 @@ footer{background:#073e2a;color:#d8eee4;padding:55px 0 20px}.footer-grid{display
 @media(max-width:950px){.navlinks{gap:14px}.hero-grid{grid-template-columns:1fr}.hero-logo{max-width:330px}.cards{grid-template-columns:repeat(2,1fr)}.about-grid,.schedule-grid,.contact-grid,.app-grid{grid-template-columns:1fr}.news-grid{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr}.footer-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:720px){.wrap{width:min(100% - 28px,1160px)}.nav{min-height:68px}.brand-copy strong{font-size:15px}.brand-copy small{font-size:9px}.menu{display:block}.navlinks{display:none;position:absolute;top:68px;left:0;right:0;background:#fff;border-bottom:1px solid var(--line);padding:18px 20px;flex-direction:column;align-items:stretch;box-shadow:0 15px 25px rgba(0,0,0,.08)}.navlinks.open{display:flex}.navlinks a{padding:10px 8px}.login{text-align:center}.hero{padding:50px 0 38px}.hero h1{font-size:44px}.hero p.lead{font-size:16px}.hero-logo{max-width:280px}.cards{grid-template-columns:1fr;margin-top:0;padding-top:15px}.section-head h2{font-size:33px}section{padding:65px 0}.news-grid,.steps,.feature-grid{grid-template-columns:1fr}.cta{align-items:flex-start;flex-direction:column}.footer-grid{grid-template-columns:1fr}.schedule-card{padding:28px}.big-time{font-size:36px}}
 
-.activity-card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
-.activity-card img{display:block;width:100%;height:230px;object-fit:cover;background:var(--mint)}.activity-card img[hidden]{display:none!important}
-.activity-card .activity-body{padding:18px}
-.activity-card h3{margin:0 0 7px;color:var(--dark);font-size:1.12rem}
-.activity-meta{font-size:.84rem;color:var(--muted);margin-bottom:8px}
-.activity-card p{margin:0;white-space:pre-line}
-.activity-card .activity-category{display:inline-block;background:var(--mint);color:var(--dark);padding:4px 9px;border-radius:20px;font-size:.78rem;font-weight:700;margin-bottom:8px}
+/* Teks galeri: gunakan font sistem yang stabil dan hindari efek tipografi yang memotong glyph. */
+.activity-card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);min-width:0}
+.activity-card img{display:block;width:100%;height:230px;object-fit:cover;background:var(--mint)}
+.activity-card .activity-body{padding:18px;min-width:0;font-family:Arial,Helvetica,sans-serif;font-kerning:normal;font-variant-ligatures:none;letter-spacing:normal;word-spacing:normal;-webkit-font-smoothing:antialiased}
+.activity-card h3{margin:0 0 7px;color:var(--dark);font-size:1.12rem;line-height:1.45;font-family:Arial,Helvetica,sans-serif;font-weight:700;letter-spacing:normal;overflow-wrap:anywhere}
+.activity-meta{font-size:.84rem;color:var(--muted);margin-bottom:8px;letter-spacing:normal}
+.activity-card p{margin:0;white-space:pre-line;overflow-wrap:anywhere;word-break:normal;line-height:1.7;font-family:Arial,Helvetica,sans-serif;letter-spacing:normal;font-variant-ligatures:none}
+.activity-card .activity-category{display:inline-block;background:var(--mint);color:var(--dark);padding:4px 9px;border-radius:20px;font-size:.78rem;font-weight:700;margin-bottom:8px;letter-spacing:normal}
 </style>
 </head>
 <body>
@@ -159,35 +160,34 @@ footer{background:#073e2a;color:#d8eee4;padding:55px 0 20px}.footer-grid{display
 /* Isi URL_WEB_APP_KONTEN setelah backend Apps Script dipasang. */
 const BSBM_CONTENT_API = "https://script.google.com/macros/s/AKfycbyNYS4j6jegTeFFQJMO21dQoFY-HJl51rsKEUo2PG8ycuJ8-XNpqBYYRGNdB2a-kr3_Iw/exec";
 function escapeHTML(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function driveImageCandidates(raw){
- const url=String(raw||'').trim();
- if(!url) return [];
- const m=url.match(/[?&]id=([A-Za-z0-9_-]+)/) || url.match(/drive\.google\.com\/file\/d\/([A-Za-z0-9_-]+)/) || url.match(/drive\.google\.com\/uc\/\?id=([A-Za-z0-9_-]+)/);
- if(m && m[1]) return ['https://drive.google.com/thumbnail?id='+m[1]+'&sz=w1200','https://drive.google.com/uc?export=view&id='+m[1],url];
- return [url];
+function formatActivityDate(value){
+ if(!value) return '';
+ // Terima YYYY-MM-DD, ISO datetime, atau tanggal yang sudah disimpan sebagai teks.
+ const raw=String(value).trim();
+ const iso=raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+ let d;
+ if(iso) d=new Date(Number(iso[1]),Number(iso[2])-1,Number(iso[3]));
+ else d=new Date(raw);
+ if(!Number.isFinite(d.getTime())) return '';
+ return d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
 }
 function showActivities(items){
  const gallery=document.getElementById('activityGallery'),status=document.getElementById('activityStatus'),empty=document.getElementById('activityEmpty');
  if(!gallery)return;
  gallery.innerHTML='';
- const published=(items||[]).filter(x=>String(x.status||'').trim().toLowerCase()==='published');
+ const published=(items||[]).filter(x=>String(x.status||'').toLowerCase()==='published');
  published.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
  published.forEach(x=>{
   const article=document.createElement('article'); article.className='activity-card';
-  const date=x.date?new Date(x.date+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):'';
-  const title=String(x.title||'Kegiatan Bank Sampah Berkah Mandiri');
-  const category=String(x.category||'Kegiatan');
-  const description=String(x.description||'Dokumentasi kegiatan Bank Sampah Berkah Mandiri.');
-  const candidates=driveImageCandidates(x.imageUrl);
-  article.innerHTML=`<img class="activity-photo" loading="lazy" alt="${escapeHTML(title)}"><div class="activity-body"><span class="activity-category">${escapeHTML(category)}</span><h3>${escapeHTML(title)}</h3><div class="activity-meta">${escapeHTML(date)}</div><p>${escapeHTML(description)}</p></div>`;
+  const date=formatActivityDate(x.date);
+  article.innerHTML=`<img loading="lazy" src="${escapeHTML(x.imageUrl||'')}" alt="${escapeHTML(x.title||'Foto kegiatan BSBM')}"><div class="activity-body"><span class="activity-category">${escapeHTML(x.category||'Kegiatan')}</span><h3>${escapeHTML(x.title||'Kegiatan Bank Sampah')}</h3><div class="activity-meta">${escapeHTML(date)}</div><p>${escapeHTML(x.description||'')}</p></div>`;
   const img=article.querySelector('img');
-  img.dataset.candidates=JSON.stringify(candidates); img.dataset.candidateIndex='0';
-  if(candidates.length){img.src=candidates[0];img.onerror=function(){const list=JSON.parse(this.dataset.candidates||'[]');let idx=Number(this.dataset.candidateIndex||0)+1;if(idx<list.length){this.dataset.candidateIndex=String(idx);this.src=list[idx];}else{this.hidden=true;this.alt='Foto belum dapat dimuat. Periksa izin berbagi Google Drive.';}};}
-  else {img.hidden=true;}
+  img.addEventListener('error',()=>{img.style.display='none';});
   gallery.appendChild(article);
  });
- if(status){status.style.display=BSBM_CONTENT_API?'block':'none';status.textContent='Dokumentasi kegiatan Bank Sampah Berkah Mandiri';}
- if(empty) empty.style.display=published.length?'none':'block';
+ status.style.display=BSBM_CONTENT_API?'block':'none';
+ status.textContent='Dokumentasi kegiatan Bank Sampah Berkah Mandiri';
+ empty.style.display=published.length?'none':'block';
 }
 function loadBSBMActivities(){
  if(!BSBM_CONTENT_API){showActivities([]);const st=document.getElementById('activityStatus');if(st)st.style.display='none';return;}
