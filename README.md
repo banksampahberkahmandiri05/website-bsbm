@@ -1,59 +1,31 @@
-# Website BSBM + Form Pengelola Konten Kegiatan
+# Dashboard Publik Bank Sampah Berkah Mandiri
 
-Paket ini menambahkan halaman `konten-admin.html` agar pengelola bisa mengunggah foto kegiatan dan keterangannya tanpa masuk ke aplikasi transaksi/saldo BSBM.
+Paket ini membuat proyek Apps Script dan spreadsheet rekap yang **terpisah** dari aplikasi transaksi BSBM. Kode dashboard hanya membaca database lama; hasil rekap disimpan di spreadsheet publik baru.
 
-## Isi paket
-- `index.html` — website publik, bagian Berita & Kegiatan membaca konten yang berstatus Published dari backend.
-- `konten-admin.html` — form unggah foto, judul, tanggal, kategori, deskripsi, dan status publikasi.
-- `Code.gs` — backend Google Apps Script TERPISAH khusus konten website.
-- `assets/images/` — aset logo/favicon yang sudah ada.
+## A. Siapkan backend
+1. Buka database Google Sheets aplikasi BSBM. Dari URL `https://docs.google.com/spreadsheets/d/ID_SPREADSHEET/edit`, salin `ID_SPREADSHEET`.
+2. Buka `https://script.google.com/` → proyek baru bernama `BSBM Dashboard Publik`.
+3. Tempel `Code.gs` ke editor.
+4. Di **Project Settings → Script Properties**, tambahkan `SOURCE_SPREADSHEET_ID` dengan nilai ID spreadsheet database lama. Jangan ubah atau bagikan database lama.
+5. Jalankan `setupDashboard()` sekali dan setujui izin Google. Fungsi membuat spreadsheet baru bernama `BSBM - Rekap Dashboard Publik`.
+6. Jalankan `installRefreshTrigger()` sekali agar rekap diperbarui setiap jam. Untuk uji langsung, jalankan `refreshDashboard()`.
 
-## Penting: backend perlu disiapkan sekali
-Form tidak bisa menyimpan konten hanya dengan GitHub Pages karena GitHub Pages adalah hosting statis. Backend Apps Script di paket ini menyimpan data di Google Sheets dan foto di Google Drive.
+## B. Deploy API
+1. **Deploy → New deployment → Web app**.
+2. Execute as: **Me**. Who has access: **Anyone**.
+3. Deploy, lalu salin URL berakhiran `/exec`.
+4. URL endpoint ini hanya menyajikan statistik agregat, data bulanan, serta lima saldo terbesar. Tetap anggap endpoint sebagai informasi publik.
 
-### A. Buat backend konten
-1. Buka https://script.google.com/ lalu buat proyek baru bernama `BSBM Website Content`.
-2. Salin isi `Code.gs` dari paket ini ke editor Apps Script.
-3. Di pengaturan proyek, set zona waktu ke `Asia/Jakarta`.
-4. Pilih fungsi `setupContentBackend` lalu klik **Run/Jalankan**. Berikan izin Google Sheets dan Google Drive. Fungsi ini membuat Spreadsheet dan folder foto secara otomatis.
-5. Buka **Project Settings / Setelan proyek > Script Properties**. Tambahkan:
-   - `ADMIN_PIN` = PIN rahasia yang kuat (minimal 12 karakter, campuran huruf/angka). Jangan gunakan `admin123`.
-   - `CONTENT_SHEET_ID` dan `CONTENT_FOLDER_ID` sudah diisi otomatis oleh setup.
-6. Deploy > New deployment > type **Web app**:
-   - Execute as: **Me**
-   - Who has access: **Anyone** (endpoint baca publik; tindakan menambah konten tetap memerlukan ADMIN_PIN)
-7. Salin URL deployment yang berakhiran `/exec`.
+## C. Pasang dashboard ke GitHub Pages
+1. Buka `dashboard.html` dan ganti `URL_WEB_APP_DASHBOARD` dengan URL `/exec` yang baru.
+2. Unggah file ke repository GitHub Pages, misalnya sebagai `dashboard.html`, lalu commit.
+3. Buka `https://USERNAME.github.io/NAMA-REPO/dashboard.html`.
 
-### B. Sambungkan form
-1. Buka `konten-admin.html`.
-2. Temukan `const CONTENT_API_URL = "";` dan isi dengan URL Web App `/exec` yang baru dibuat.
-3. Simpan.
+## Data yang dibaca
+Sheet sumber yang diharapkan: `Nasabah`, `Setoran`, `Penarikan`. Header yang diharapkan meliputi `ID Nasabah`, `Nama`, `Status`, `Tanggal`, `Nama Nasabah`, `Berat (kg)`, `Nilai Setoran`, dan `Jumlah Penarikan`. Jika header aplikasi Anda berbeda, sesuaikan nama header di `Code.gs`.
 
-### C. Sambungkan galeri di halaman publik
-1. Buka `index.html`.
-2. Temukan `const BSBM_CONTENT_API = "";` dan isi dengan URL Web App `/exec` yang sama.
-3. Simpan.
-
-### D. Upload ke GitHub Pages
-Upload/replace semua isi folder paket ke root folder repository yang melayani `/website-bsbm/`, lalu Commit changes. Jangan upload folder pembungkus ZIP; upload isinya. Tunggu deploy, kemudian refresh dengan Ctrl+F5.
-
-Form bisa dibuka di:
-`https://banksampahberkahmandiri05.github.io/website-bsbm/konten-admin.html`
-
-## Cara mengisi kegiatan
-1. Buka halaman Form Pengelola Konten.
-2. Masukkan PIN `ADMIN_PIN` yang dibuat di Script Properties.
-3. Isi judul, tanggal, kategori, deskripsi, pilih foto (JPG/PNG/WebP maksimal 5 MB).
-4. Pilih **Tampilkan di website** atau **Simpan sebagai draft**.
-5. Klik **Simpan Konten Kegiatan**. Konten Published akan ditampilkan di bagian Berita & Kegiatan pada halaman depan.
-
-## Keamanan & privasi
-- Jangan menulis PIN ke dalam HTML, README publik, atau GitHub. PIN hanya dimasukkan di form dan disimpan sebagai Script Property.
-- Form tidak memakai login aplikasi transaksi. Ini adalah jalur pengelolaan konten yang terpisah.
-- Foto yang ditampilkan pada website dibuat dapat dilihat siapa pun melalui tautan. Jangan unggah foto/dokumen berisi data sensitif, saldo nasabah, nomor telepon, alamat rumah, kartu identitas, atau QR Code yang berisi data pribadi.
-- Karena hosting website statis, siapa pun dapat melihat halaman form. Keamanan aksi penyimpanan mengandalkan `ADMIN_PIN` di server Apps Script. Jaga PIN, ganti jika bocor, dan jangan membagikannya ke warga umum.
-- Browser dapat membatasi pembacaan balasan POST lintas-domain; form memberi notifikasi bahwa permintaan dikirim. Periksa galeri website dan tab Executions pada Apps Script bila konten belum muncul.
-- Jangan menaruh data nasabah atau saldo di spreadsheet konten ini. Gunakan hanya untuk informasi kegiatan publik.
-
-## Catatan
-Ini backend konten terpisah dan tidak mengubah database atau kode aplikasi transaksi BSBM. Jika mengubah nama deployment atau membuat deployment baru, perbarui URL di kedua file HTML.
+## Privasi dan pemeriksaan
+- Lima nama + saldo terbesar adalah informasi finansial pribadi. Minta persetujuan nasabah sebelum menayangkan nama lengkap dan saldo. Jika belum ada persetujuan, gunakan inisial/kode atau hapus bagian peringkat.
+- Jangan publikasikan NIK, nomor HP, alamat, QR identitas, atau detail transaksi individu.
+- Saldo di template dihitung sebagai total `Nilai Setoran` dikurangi total `Jumlah Penarikan` per ID nasabah. Cocokkan hasil dengan aplikasi lama sebelum ditayangkan.
+- Template ini belum ter-deploy ke akun Google/GitHub Anda; perlu pemasangan dan pengujian menggunakan akun pemilik database.
