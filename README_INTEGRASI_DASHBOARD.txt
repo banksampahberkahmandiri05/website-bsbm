@@ -1,7 +1,10 @@
-PAKET PEMULIHAN KONTEN WEBSITE BSBM + MENU DASHBOARD
+PEMBARUAN WEBSITE BANK SAMPAH BERKAH MANDIRI
 
-Paket ini mempertahankan index.html versi website BSBM yang memiliki bagian kegiatan, galeri/konten, dan integrasi konten API. Menu Dashboard ditambahkan tanpa mengganti halaman utama dengan versi yang lebih sederhana.
+Dashboard telah diisi dengan URL Web App Apps Script yang diberikan pengguna.
+URL Dashboard API: https://script.google.com/macros/s/AKfycbxGGQ8Aq2wHwPtU2bLMmngIaFx87BSHc7fe4bNJiSbzmRWT5dbOsWZDmh0itkETty-nJw/exec
 
-Cara aman: backup repository GitHub Pages terlebih dahulu, lalu unggah isi ZIP ke repository yang sama dan timpa file yang cocok. Jangan hapus file konten atau aset yang sudah ada. Setelah commit, cek bagian Kegiatan/Galeri dan menu Dashboard.
+Cara pasang: backup repositori GitHub Pages terlebih dahulu, ekstrak ZIP ini, lalu unggah/ganti file sesuai struktur folder pada repositori website (jangan unggah ZIP sebagai pengganti file website). Commit perubahan dan tunggu GitHub Pages selesai deploy.
 
-Dashboard memerlukan URL Web App Apps Script yang sudah berhasil dideploy sebelum data statistik aktual muncul. Aplikasi transaksi lama tetap terpisah dan tidak diubah.
+Jika dashboard tetap tidak memuat data, pastikan deployment Apps Script dijalankan sebagai pemilik, akses diatur agar dapat diakses publik (Anyone jika sesuai kebijakan), dan fungsi setupDashboard() serta refreshDashboard() sudah berhasil dijalankan pada proyek Apps Script dashboard. Periksa juga bahwa Script Properties SOURCE_SPREADSHEET_ID dan PUBLIC_DASHBOARD_SPREADSHEET_ID sudah diisi. URL saja tidak dapat membuat konfigurasi sumber data otomatis.
+
+Privasi: sebelum mempublikasikan nama dan saldo nasabah, pastikan sudah ada persetujuan.
